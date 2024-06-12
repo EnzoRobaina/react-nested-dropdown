@@ -122,10 +122,12 @@ WithSearch.args = {items: [{
   label: "Option 2",
   renderInput: DefaultInput,
   debounce: 25,
+  iconAfter: <span>👍</span>,
   items: [
     {
       label: "Option 2.1",
       onSelect: () => action('option:onSelect')('Option 2.1 clicked'),
+      iconAfter: <span>👍</span>,
     },
     {
       label: "Option 2.2",

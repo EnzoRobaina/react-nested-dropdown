@@ -123,7 +123,7 @@ export const Dropdown = <TValue,>({
           ref={rootMenuRef}
         >
           {items.map((item, index) => (
-            <Option key={index} option={item} onSelect={handleSelect} renderOption={renderOption} {...item} />
+            <Option {...item} key={index} option={item} onSelect={handleSelect} renderOption={renderOption}  />
           ))}
         </ul>
       )}
@@ -220,7 +220,7 @@ const Option = <TValue,>({
     };
   }, []);
 
-  const iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
+  const iconAfter = option.iconAfter ? option.iconAfter : hasSubmenu ? chevronNode : null;
 
   const _handleChange = (value: string) => {
     setSearchValue(value);

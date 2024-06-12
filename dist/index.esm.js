@@ -688,7 +688,7 @@ var Dropdown = function (_a) {
     }, [dropdownIsOpen]);
     return (React.createElement("div", { className: clsx('rnd', className), ref: containerRef },
         children(childrenProps),
-        dropdownIsOpen && (React.createElement("ul", { className: "rnd__root-menu rnd__menu ".concat(menuPositionClassName), style: { width: containerWidth }, ref: rootMenuRef }, items.map(function (item, index) { return (React.createElement(Option, __assign({ key: index, option: item, onSelect: handleSelect, renderOption: renderOption }, item))); })))));
+        dropdownIsOpen && (React.createElement("ul", { className: "rnd__root-menu rnd__menu ".concat(menuPositionClassName), style: { width: containerWidth }, ref: rootMenuRef }, items.map(function (item, index) { return (React.createElement(Option, __assign({}, item, { key: index, option: item, onSelect: handleSelect, renderOption: renderOption }))); })))));
 };
 var DefaultInput = function (_a) {
     var value = _a.value, mounted = _a.mounted, rest = __rest(_a, ["value", "mounted"]);
@@ -741,7 +741,7 @@ var Option = function (_a) {
             }
         };
     }, []);
-    var iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
+    var iconAfter = option.iconAfter ? option.iconAfter : hasSubmenu ? chevronNode : null;
     var _handleChange = function (value) {
         setSearchValue(value);
         debounceFilter();
