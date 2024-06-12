@@ -157,7 +157,7 @@ export const DefaultInput = ({ value, mounted, ...rest }: InputProps) => {
   );
 };
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   mounted?: boolean;
 }
 

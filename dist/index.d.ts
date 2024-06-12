@@ -32,4 +32,4 @@ declare const DefaultInput: ({ value, mounted, ...rest }: InputProps) => React.J
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     mounted?: boolean;
 }
-export { DropdownItem, DropdownProps, Dropdown, DefaultInput };
+export { DropdownItem, DropdownProps, Dropdown, DefaultInput, InputProps };
