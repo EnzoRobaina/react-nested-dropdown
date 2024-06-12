@@ -2,7 +2,7 @@ import '~/styles.css';
 
 import React from 'react';
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { Dropdown } from '~/components/dropdown';
+import { Dropdown, DefaultInput } from '~/components/dropdown';
 import { action } from '@storybook/addon-actions';
 
 export default {
@@ -112,3 +112,24 @@ DisabledItem.args = {
     },
   ],
 };
+
+export const WithSearch = Template.bind({});
+WithSearch.args = {items: [{
+  label: "Option 1",
+  onSelect: () => action('option:onSelect')('Option 1 clicked'),
+},
+{
+  label: "Option 2",
+  renderInput: DefaultInput,
+  debounce: 25,
+  items: [
+    {
+      label: "Option 2.1",
+      onSelect: () => action('option:onSelect')('Option 2.1 clicked'),
+    },
+    {
+      label: "Option 2.2",
+      onSelect: () => action('option:onSelect')('Option 2.2 clicked'),
+    },
+  ],
+}]}

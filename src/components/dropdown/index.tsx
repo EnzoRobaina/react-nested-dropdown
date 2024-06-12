@@ -9,10 +9,12 @@ import React, {
   useMemo,
   useRef,
   useState,
+  InputHTMLAttributes,
 } from 'react';
 import { useClickAway } from '~/hooks/use-click-away';
 
 import { getMenuPositionClassName } from './utils';
+import _debounce from 'lodash/debounce';
 
 export interface DropdownItem<TValue = undefined> {
   label: string;
@@ -24,6 +26,9 @@ export interface DropdownItem<TValue = undefined> {
   onSelect?: () => void;
   disabled?: boolean;
   className?: string;
+  selected?: boolean;
+  renderInput?: (props: InputProps) => React.ReactNode;
+  debounce?: number;
 }
 
 export interface DropdownProps<TValue> {
@@ -119,7 +124,7 @@ export const Dropdown = <TValue,>({
           ref={rootMenuRef}
         >
           {items.map((item, index) => (
-            <Option key={index} option={item} onSelect={handleSelect} renderOption={renderOption} />
+            <Option key={index} option={item} onSelect={handleSelect} renderOption={renderOption} {...item} />
           ))}
         </ul>
       )}
@@ -127,22 +132,50 @@ export const Dropdown = <TValue,>({
   );
 };
 
+export const DefaultInput = ({value, mounted, ...rest}: InputProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // autofocus on mount with a delay
+  useEffect(() => {
+    if (mounted && inputRef.current) {
+      setTimeout(() => {
+        inputRef!.current!.focus()
+      }, 10);
+    }
+  }, [mounted]);
+
+  return (
+    <input style={{
+      maxWidth: '100%',
+    }} value={value} {...rest} ref={inputRef} type="text" placeholder="Search..." className="rnd__search" />
+  );
+};
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  mounted?: boolean;
+}
+
 interface OptionProps<TValue> {
   option: DropdownItem<TValue>;
   onSelect: (item: DropdownItem<TValue>) => void;
   renderOption?: (option: DropdownItem<TValue>) => React.ReactNode;
+  renderInput?: (props: InputProps) => React.ReactNode;
+  debounce?: number;
 }
 
 const Option = <TValue,>({
   option,
   onSelect,
   renderOption,
+  renderInput,
+  debounce = 100,
 }: OptionProps<TValue>): React.ReactElement => {
   const items = option.items;
   const hasSubmenu = !!items;
   const itemsContainerWidth = option.itemsContainerWidth ?? 150;
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
   const handleClick = React.useCallback(
     (e: UIEvent) => {
@@ -182,6 +215,24 @@ const Option = <TValue,>({
 
   const iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
 
+  const _handleChange = (value: string) => {
+    const _value = value.trim();
+
+    setSearchValue(_value);
+  };
+
+  const debounceFn = useCallback(_debounce(_handleChange, debounce), []);
+
+  const filteredList = useMemo(
+    () =>
+      (searchValue
+        ? items?.filter(item =>
+            item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase()),
+          )
+        : items) ?? [],
+    [items, searchValue],
+  );
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li
@@ -189,6 +240,7 @@ const Option = <TValue,>({
         'rnd__option--disabled': option.disabled,
         'rnd__option--with-menu': hasSubmenu,
       })}
+      // style={{backgroundColor: option.selected ? 'red' : 'transparent',}}
       onMouseDown={handleClick}
       onKeyUp={handleClick}
     >
@@ -200,7 +252,10 @@ const Option = <TValue,>({
           ref={submenuRef}
           style={{ width: itemsContainerWidth }}
         >
-          {items.map((item, index) => (
+          {renderInput &&
+            renderInput({ value: searchValue, onChange: e => debounceFn(e.currentTarget.value), mounted: submenuIsOpen })}
+
+          {filteredList.map((item, index) => (
             <Option key={index} option={item} onSelect={onSelect} renderOption={renderOption} />
           ))}
         </ul>
