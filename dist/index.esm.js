@@ -706,14 +706,14 @@ var DefaultInput = function (_a) {
 };
 var Option = function (_a) {
     var _b;
-    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c;
+    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c, _d = _a.maxHeight, maxHeight = _d === void 0 ? 300 : _d;
     var items = option.items;
     var hasSubmenu = !!items;
     var itemsContainerWidth = (_b = option.itemsContainerWidth) !== null && _b !== void 0 ? _b : 150;
-    var _d = useState(''), menuPositionClassName = _d[0], setMenuPositionClassName = _d[1];
-    var _e = useState(false), submenuIsOpen = _e[0], setSubmenuOpen = _e[1];
-    var _f = useState(''), searchValue = _f[0], setSearchValue = _f[1];
-    var _g = useState(false), setRenderTrigger = _g[1];
+    var _e = useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
+    var _f = useState(false), submenuIsOpen = _f[0], setSubmenuOpen = _f[1];
+    var _g = useState(''), searchValue = _g[0], setSearchValue = _g[1];
+    var _h = useState(false), setRenderTrigger = _h[1];
     var handleClick = useCallback(function (e) {
         if (hasSubmenu)
             return;
@@ -755,13 +755,19 @@ var Option = function (_a) {
             })
             : items)) !== null && _a !== void 0 ? _a : [];
     }, [items, searchValue]);
+    var maxHeightStyle = useMemo(function () {
+        if (!maxHeight) {
+            return {};
+        }
+        return { maxHeight: "".concat(maxHeight, "px"), overflowY: 'auto' };
+    }, [maxHeight]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
         }), onMouseDown: handleClick, onKeyUp: handleClick },
         hasSubmenu && (React.createElement("ul", { className: clsx("rnd__menu rnd__submenu ".concat(menuPositionClassName), {
                 'rnd__submenu--opened': submenuIsOpen,
-            }), ref: submenuRef, style: { width: itemsContainerWidth } },
+            }), ref: submenuRef, style: __assign({ width: itemsContainerWidth }, maxHeightStyle) },
             renderInput &&
                 renderInput({
                     value: searchValue,

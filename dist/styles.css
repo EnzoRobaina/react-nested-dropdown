@@ -120,3 +120,8 @@
   font-size: 11px;
   margin: 0;
 }
+
+.long {
+  scrollbar-color: red orange;
+  scrollbar-width: thin;
+}
