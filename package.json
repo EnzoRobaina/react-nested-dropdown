@@ -1,15 +1,15 @@
 {
-  "name": "react-nested-dropdown",
-  "version": "0.0.12",
+  "name": "enzorobaina-react-nested-dropdown",
+  "version": "0.0.13",
   "description": "Dropdown with submenu for React",
-  "author": "German Makarov <cxdcjs@gmail.com>",
-  "homepage": "https://github.com/g-makarov/react-nested-dropdown",
+  "author": "EnzoRobaina <enzo.robaina@gmail.com>",
+  "homepage": "https://github.com/EnzoRobaina/react-nested-dropdown",
   "repository": {
     "type": "git",
-    "url": "https://github.com/g-makarov/react-nested-dropdown"
+    "url": "https://github.com/EnzoRobaina/react-nested-dropdown"
   },
   "bugs": {
-    "url": "https://github.com/g-makarov/react-nested-dropdown/issues"
+    "url": "https://github.com/EnzoRobaina/react-nested-dropdown/issues"
   },
   "license": "MIT",
   "scripts": {
