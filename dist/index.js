@@ -714,7 +714,8 @@ var Option = function (_a) {
     var itemsContainerWidth = (_b = option.itemsContainerWidth) !== null && _b !== void 0 ? _b : 150;
     var _d = React.useState(''), menuPositionClassName = _d[0], setMenuPositionClassName = _d[1];
     var _e = React.useState(false), submenuIsOpen = _e[0], setSubmenuOpen = _e[1];
-    var _f = React.useState(''), searchValue = _f[0], setSearchValue = _f[1];
+    var searchValueRef = React.useRef('');
+    var _f = React.useState(false), setRenderTrigger = _f[1];
     var handleClick = React.useCallback(function (e) {
         if (hasSubmenu)
             return;
@@ -745,17 +746,18 @@ var Option = function (_a) {
     var iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
     var _handleChange = function (value) {
         var _value = value.trim();
-        setSearchValue(_value);
+        searchValueRef.current = _value;
+        debounceFn();
     };
-    var debounceFn = React.useCallback(_debounce(_handleChange, debounce), []);
+    var debounceFn = React.useMemo(function () { return _debounce(function () { return setRenderTrigger(function (prev) { return !prev; }); }, debounce); }, [debounce]);
     var filteredList = React.useMemo(function () {
         var _a;
-        return (_a = (searchValue
+        return (_a = (searchValueRef.current
             ? items === null || items === void 0 ? void 0 : items.filter(function (item) {
-                return item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase());
+                return item.label.trim().toLowerCase().includes(searchValueRef.current.trim().toLowerCase());
             })
             : items)) !== null && _a !== void 0 ? _a : [];
-    }, [items, searchValue]);
+    }, [items, searchValueRef.current]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
@@ -764,7 +766,11 @@ var Option = function (_a) {
                 'rnd__submenu--opened': submenuIsOpen,
             }), ref: submenuRef, style: { width: itemsContainerWidth } },
             renderInput &&
-                renderInput({ value: searchValue, onChange: function (e) { return debounceFn(e.currentTarget.value); }, mounted: submenuIsOpen }),
+                renderInput({
+                    value: searchValueRef.current,
+                    onChange: function (e) { return _handleChange(e.currentTarget.value); },
+                    mounted: submenuIsOpen,
+                }),
             filteredList.map(function (item, index) { return (React.createElement(Option, { key: index, option: item, onSelect: onSelect, renderOption: renderOption })); }))),
         renderOption && renderOption(option),
         !renderOption && (React.createElement(React.Fragment, null,

@@ -647,7 +647,7 @@ var Dropdown = function (_a) {
             onClick: toggleDropdown,
         };
     }, [dropdownIsOpen, toggleDropdown]);
-    var handleSelect = React.useCallback(function (item) {
+    var handleSelect = useCallback(function (item) {
         if (item.disabled) {
             return;
         }
@@ -660,7 +660,7 @@ var Dropdown = function (_a) {
         closeDropdown();
     }, [closeDropdown, onSelect]);
     useClickAway(containerRef, closeDropdown);
-    var scrollListener = React.useCallback(function (e) {
+    var scrollListener = useCallback(function (e) {
         var _a;
         var el = e.target;
         if (!((_a = el === null || el === void 0 ? void 0 : el.classList) === null || _a === void 0 ? void 0 : _a.contains('rnd__menu'))) {
@@ -712,8 +712,9 @@ var Option = function (_a) {
     var itemsContainerWidth = (_b = option.itemsContainerWidth) !== null && _b !== void 0 ? _b : 150;
     var _d = useState(''), menuPositionClassName = _d[0], setMenuPositionClassName = _d[1];
     var _e = useState(false), submenuIsOpen = _e[0], setSubmenuOpen = _e[1];
-    var _f = useState(''), searchValue = _f[0], setSearchValue = _f[1];
-    var handleClick = React.useCallback(function (e) {
+    var searchValueRef = useRef('');
+    var _f = useState(false), setRenderTrigger = _f[1];
+    var handleClick = useCallback(function (e) {
         if (hasSubmenu)
             return;
         e.stopPropagation();
@@ -743,17 +744,18 @@ var Option = function (_a) {
     var iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
     var _handleChange = function (value) {
         var _value = value.trim();
-        setSearchValue(_value);
+        searchValueRef.current = _value;
+        debounceFn();
     };
-    var debounceFn = useCallback(_debounce(_handleChange, debounce), []);
+    var debounceFn = useMemo(function () { return _debounce(function () { return setRenderTrigger(function (prev) { return !prev; }); }, debounce); }, [debounce]);
     var filteredList = useMemo(function () {
         var _a;
-        return (_a = (searchValue
+        return (_a = (searchValueRef.current
             ? items === null || items === void 0 ? void 0 : items.filter(function (item) {
-                return item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase());
+                return item.label.trim().toLowerCase().includes(searchValueRef.current.trim().toLowerCase());
             })
             : items)) !== null && _a !== void 0 ? _a : [];
-    }, [items, searchValue]);
+    }, [items, searchValueRef.current]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
@@ -762,7 +764,11 @@ var Option = function (_a) {
                 'rnd__submenu--opened': submenuIsOpen,
             }), ref: submenuRef, style: { width: itemsContainerWidth } },
             renderInput &&
-                renderInput({ value: searchValue, onChange: function (e) { return debounceFn(e.currentTarget.value); }, mounted: submenuIsOpen }),
+                renderInput({
+                    value: searchValueRef.current,
+                    onChange: function (e) { return _handleChange(e.currentTarget.value); },
+                    mounted: submenuIsOpen,
+                }),
             filteredList.map(function (item, index) { return (React.createElement(Option, { key: index, option: item, onSelect: onSelect, renderOption: renderOption })); }))),
         renderOption && renderOption(option),
         !renderOption && (React.createElement(React.Fragment, null,
