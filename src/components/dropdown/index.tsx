@@ -182,6 +182,7 @@ const Option = <TValue,>({
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [, setRenderTrigger] = useState(false);
 
   const handleClick = useCallback(
     (e: UIEvent) => {
