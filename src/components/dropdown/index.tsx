@@ -181,8 +181,7 @@ const Option = <TValue,>({
   const itemsContainerWidth = option.itemsContainerWidth ?? 150;
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
-  const searchValueRef = useRef('');
-  const [, setRenderTrigger] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
   const handleClick = useCallback(
     (e: UIEvent) => {
@@ -223,24 +222,23 @@ const Option = <TValue,>({
   const iconAfter = hasSubmenu ? chevronNode : option.iconAfter;
 
   const _handleChange = (value: string) => {
-    const _value = value.trim();
-    searchValueRef.current = _value;
-    debounceFn();
+    setSearchValue(value);
+    debounceFilter();
   };
 
-  const debounceFn = useMemo(
+  const debounceFilter = useMemo(
     () => _debounce(() => setRenderTrigger(prev => !prev), debounce),
     [debounce],
   );
 
   const filteredList = useMemo(
     () =>
-      (searchValueRef.current
+      (searchValue
         ? items?.filter(item =>
-            item.label.trim().toLowerCase().includes(searchValueRef.current.trim().toLowerCase()),
+            item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase()),
           )
         : items) ?? [],
-    [items, searchValueRef.current],
+    [items, searchValue],
   );
 
   return (
@@ -262,7 +260,7 @@ const Option = <TValue,>({
         >
           {renderInput &&
             renderInput({
-              value: searchValueRef.current,
+              value: searchValue,
               onChange: e => _handleChange(e.currentTarget.value),
               mounted: submenuIsOpen,
             })}
