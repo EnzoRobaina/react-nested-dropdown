@@ -12,7 +12,6 @@ import React, {
   InputHTMLAttributes,
 } from 'react';
 import { useClickAway } from '~/hooks/use-click-away';
-
 import { getMenuPositionClassName } from './utils';
 import _debounce from 'lodash/debounce';
 
@@ -64,7 +63,7 @@ export const Dropdown = <TValue,>({
     };
   }, [dropdownIsOpen, toggleDropdown]);
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     (item: DropdownItem<TValue>) => {
       if (item.disabled) {
         return;
@@ -82,7 +81,7 @@ export const Dropdown = <TValue,>({
 
   useClickAway(containerRef, closeDropdown);
 
-  const scrollListener = React.useCallback(
+  const scrollListener = useCallback(
     (e: Event) => {
       const el = e.target as HTMLElement | null;
       if (!el?.classList?.contains('rnd__menu')) {
@@ -132,22 +131,29 @@ export const Dropdown = <TValue,>({
   );
 };
 
-export const DefaultInput = ({value, mounted, ...rest}: InputProps) => {
+export const DefaultInput = ({ value, mounted, ...rest }: InputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // autofocus on mount with a delay
   useEffect(() => {
     if (mounted && inputRef.current) {
       setTimeout(() => {
-        inputRef!.current!.focus()
+        inputRef!.current!.focus();
       }, 10);
     }
   }, [mounted]);
 
   return (
-    <input style={{
-      maxWidth: '100%',
-    }} value={value} {...rest} ref={inputRef} type="text" placeholder="Search..." className="rnd__search" />
+    <input
+      style={{
+        maxWidth: '100%',
+      }}
+      value={value}
+      {...rest}
+      ref={inputRef}
+      type="text"
+      placeholder="Search..."
+      className="rnd__search"
+    />
   );
 };
 
@@ -175,9 +181,10 @@ const Option = <TValue,>({
   const itemsContainerWidth = option.itemsContainerWidth ?? 150;
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const searchValueRef = useRef('');
+  const [, setRenderTrigger] = useState(false);
 
-  const handleClick = React.useCallback(
+  const handleClick = useCallback(
     (e: UIEvent) => {
       if (hasSubmenu) return;
 
@@ -217,30 +224,31 @@ const Option = <TValue,>({
 
   const _handleChange = (value: string) => {
     const _value = value.trim();
-
-    setSearchValue(_value);
+    searchValueRef.current = _value;
+    debounceFn();
   };
 
-  const debounceFn = useCallback(_debounce(_handleChange, debounce), []);
+  const debounceFn = useMemo(
+    () => _debounce(() => setRenderTrigger(prev => !prev), debounce),
+    [debounce],
+  );
 
   const filteredList = useMemo(
     () =>
-      (searchValue
+      (searchValueRef.current
         ? items?.filter(item =>
-            item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase()),
+            item.label.trim().toLowerCase().includes(searchValueRef.current.trim().toLowerCase()),
           )
         : items) ?? [],
-    [items, searchValue],
+    [items, searchValueRef.current],
   );
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li
       className={clsx('rnd__option', option.className, {
         'rnd__option--disabled': option.disabled,
         'rnd__option--with-menu': hasSubmenu,
       })}
-      // style={{backgroundColor: option.selected ? 'red' : 'transparent',}}
       onMouseDown={handleClick}
       onKeyUp={handleClick}
     >
@@ -253,7 +261,11 @@ const Option = <TValue,>({
           style={{ width: itemsContainerWidth }}
         >
           {renderInput &&
-            renderInput({ value: searchValue, onChange: e => debounceFn(e.currentTarget.value), mounted: submenuIsOpen })}
+            renderInput({
+              value: searchValueRef.current,
+              onChange: e => _handleChange(e.currentTarget.value),
+              mounted: submenuIsOpen,
+            })}
 
           {filteredList.map((item, index) => (
             <Option key={index} option={item} onSelect={onSelect} renderOption={renderOption} />
