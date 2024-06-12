@@ -122,7 +122,6 @@ WithSearch.args = {items: [{
   label: "Option 2",
   renderInput: DefaultInput,
   debounce: 25,
-  iconAfter: <span>👍</span>,
   items: [
     {
       label: "Option 2.1",
@@ -134,4 +133,21 @@ WithSearch.args = {items: [{
       onSelect: () => action('option:onSelect')('Option 2.2 clicked'),
     },
   ],
+}]}
+
+export const WithSearchLong = Template.bind({});
+WithSearchLong.args = {items: [{
+  label: "Option 1",
+  onSelect: () => action('option:onSelect')('Option 1 clicked'),
+},
+{
+  label: "Option 2",
+  renderInput: DefaultInput,
+  debounce: 25,
+  iconAfter: <span>👍</span>,
+  className: 'long',
+  items: Array.from({ length: 500 }).fill(null).map((_, index) => ({
+    label: `Option 2.${index}`,
+    onSelect: () => action('option:onSelect')(`Option 2.${index} clicked`),
+  }))
 }]}

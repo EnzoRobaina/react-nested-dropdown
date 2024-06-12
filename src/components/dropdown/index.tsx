@@ -167,6 +167,7 @@ interface OptionProps<TValue> {
   renderOption?: (option: DropdownItem<TValue>) => React.ReactNode;
   renderInput?: (props: InputProps) => React.ReactNode;
   debounce?: number;
+  maxHeight?: number;
 }
 
 const Option = <TValue,>({
@@ -175,6 +176,7 @@ const Option = <TValue,>({
   renderOption,
   renderInput,
   debounce = 100,
+  maxHeight = 300,
 }: OptionProps<TValue>): React.ReactElement => {
   const items = option.items;
   const hasSubmenu = !!items;
@@ -242,6 +244,14 @@ const Option = <TValue,>({
     [items, searchValue],
   );
 
+  const maxHeightStyle = useMemo(() => {
+    if (!maxHeight) {
+      return {};
+    }
+
+    return { maxHeight: `${maxHeight}px`, overflowY: 'auto'} as any;
+  }, [maxHeight]);
+
   return (
     <li
       className={clsx('rnd__option', option.className, {
@@ -257,7 +267,7 @@ const Option = <TValue,>({
             'rnd__submenu--opened': submenuIsOpen,
           })}
           ref={submenuRef}
-          style={{ width: itemsContainerWidth }}
+          style={{ width: itemsContainerWidth, ...maxHeightStyle}}
         >
           {renderInput &&
             renderInput({
