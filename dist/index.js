@@ -637,10 +637,10 @@ var debounce_1 = debounce;
 var _debounce = /*@__PURE__*/getDefaultExportFromCjs(debounce_1);
 
 var Dropdown = function (_a) {
-    var items = _a.items, _b = _a.containerWidth, containerWidth = _b === void 0 ? 300 : _b, onSelect = _a.onSelect, children = _a.children, className = _a.className, renderOption = _a.renderOption, _c = _a.closeOnScroll, closeOnScroll = _c === void 0 ? true : _c;
+    var items = _a.items, _b = _a.containerWidth, containerWidth = _b === void 0 ? 300 : _b, onSelect = _a.onSelect, children = _a.children, className = _a.className, renderOption = _a.renderOption, _c = _a.closeOnScroll, closeOnScroll = _c === void 0 ? true : _c, _d = _a.closeOnSelect, closeOnSelect = _d === void 0 ? true : _d;
     var containerRef = React.useRef(null);
-    var _d = React.useState(''), menuPositionClassName = _d[0], setMenuPositionClassName = _d[1];
-    var _e = React.useState(false), dropdownIsOpen = _e[0], setDropdownOpen = _e[1];
+    var _e = React.useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
+    var _f = React.useState(false), dropdownIsOpen = _f[0], setDropdownOpen = _f[1];
     var toggleDropdown = React.useCallback(function () { return setDropdownOpen(function (state) { return !state; }); }, []);
     var closeDropdown = React.useCallback(function () { return setDropdownOpen(false); }, []);
     var childrenProps = React.useMemo(function () {
@@ -659,8 +659,10 @@ var Dropdown = function (_a) {
         else if (item.value !== undefined && onSelect) {
             onSelect(item.value, item);
         }
-        closeDropdown();
-    }, [closeDropdown, onSelect]);
+        if (closeOnSelect) {
+            closeDropdown();
+        }
+    }, [closeDropdown, onSelect, closeOnSelect]);
     useClickAway(containerRef, closeDropdown);
     var scrollListener = React.useCallback(function (e) {
         var _a;
@@ -721,7 +723,7 @@ var Option = function (_a) {
             return;
         e.stopPropagation();
         onSelect(option);
-        setSearchValue("");
+        setSearchValue('');
     }, [hasSubmenu, onSelect, option]);
     var submenuRef = React.useRef(null);
     React.useEffect(function () {

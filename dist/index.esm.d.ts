@@ -26,8 +26,9 @@ interface DropdownProps<TValue> {
     className?: string;
     renderOption?: (option: DropdownItem<TValue>) => ReactNode;
     closeOnScroll?: boolean;
+    closeOnSelect?: boolean;
 }
-declare const Dropdown: <TValue>({ items, containerWidth, onSelect, children, className, renderOption, closeOnScroll }: DropdownProps<TValue>) => React.ReactElement;
+declare const Dropdown: <TValue>({ items, containerWidth, onSelect, children, className, renderOption, closeOnScroll, closeOnSelect }: DropdownProps<TValue>) => React.ReactElement;
 declare const DefaultInput: ({ value, mounted, ...rest }: InputProps) => React.JSX.Element;
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     mounted?: boolean;
