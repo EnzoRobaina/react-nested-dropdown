@@ -192,11 +192,18 @@ const Option = <TValue,>({
 
       e.stopPropagation();
       onSelect(option);
+      setSearchValue("")
     },
     [hasSubmenu, onSelect, option],
   );
 
   const submenuRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (!submenuIsOpen && searchValue) {
+      setSearchValue('');
+    }
+  }, [submenuIsOpen]);
 
   useEffect(() => {
     const submenuElement = submenuRef.current;
