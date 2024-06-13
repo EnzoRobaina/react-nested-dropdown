@@ -151,3 +151,20 @@ WithSearchLong.args = {items: [{
     onSelect: () => action('option:onSelect')(`Option 2.${index} clicked`),
   }))
 }]}
+
+export const DoNotCloseOnSelect = Template.bind({});
+DoNotCloseOnSelect.args = {closeOnSelect: false, items: [{
+  label: "Option 1",
+  onSelect: () => action('option:onSelect')('Option 1 clicked'),
+},
+{
+  label: "Option 2",
+  renderInput: DefaultInput,
+  debounce: 25,
+  iconAfter: <span>👍</span>,
+  className: 'long',
+  items: Array.from({ length: 500 }).fill(null).map((_, index) => ({
+    label: `Option 2.${index}`,
+    onSelect: () => action('option:onSelect')(`Option 2.${index} clicked`),
+  }))
+}]}

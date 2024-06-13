@@ -38,6 +38,7 @@ export interface DropdownProps<TValue> {
   className?: string;
   renderOption?: (option: DropdownItem<TValue>) => ReactNode;
   closeOnScroll?: boolean;
+  closeOnSelect?: boolean;
 }
 
 export const Dropdown = <TValue,>({
@@ -48,6 +49,7 @@ export const Dropdown = <TValue,>({
   className,
   renderOption,
   closeOnScroll = true,
+  closeOnSelect = true,
 }: DropdownProps<TValue>): React.ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
@@ -74,9 +76,11 @@ export const Dropdown = <TValue,>({
       } else if (item.value !== undefined && onSelect) {
         onSelect(item.value, item);
       }
-      closeDropdown();
+      if (closeOnSelect) {
+        closeDropdown();
+      }
     },
-    [closeDropdown, onSelect],
+    [closeDropdown, onSelect, closeOnSelect],
   );
 
   useClickAway(containerRef, closeDropdown);
@@ -123,7 +127,13 @@ export const Dropdown = <TValue,>({
           ref={rootMenuRef}
         >
           {items.map((item, index) => (
-            <Option {...item} key={index} option={item} onSelect={handleSelect} renderOption={renderOption}  />
+            <Option
+              {...item}
+              key={index}
+              option={item}
+              onSelect={handleSelect}
+              renderOption={renderOption}
+            />
           ))}
         </ul>
       )}
@@ -192,7 +202,7 @@ const Option = <TValue,>({
 
       e.stopPropagation();
       onSelect(option);
-      setSearchValue("")
+      setSearchValue('');
     },
     [hasSubmenu, onSelect, option],
   );
@@ -256,7 +266,7 @@ const Option = <TValue,>({
       return {};
     }
 
-    return { maxHeight: `${maxHeight}px`, overflowY: 'auto'} as any;
+    return { maxHeight: `${maxHeight}px`, overflowY: 'auto' } as any;
   }, [maxHeight]);
 
   const handleKeyDown = useCallback(
@@ -286,7 +296,7 @@ const Option = <TValue,>({
             'rnd__submenu--opened': submenuIsOpen,
           })}
           ref={submenuRef}
-          style={{ width: itemsContainerWidth, ...maxHeightStyle}}
+          style={{ width: itemsContainerWidth, ...maxHeightStyle }}
         >
           {renderInput &&
             renderInput({
