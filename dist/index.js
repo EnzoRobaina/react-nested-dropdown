@@ -721,8 +721,14 @@ var Option = function (_a) {
             return;
         e.stopPropagation();
         onSelect(option);
+        setSearchValue("");
     }, [hasSubmenu, onSelect, option]);
     var submenuRef = React.useRef(null);
+    React.useEffect(function () {
+        if (!submenuIsOpen && searchValue) {
+            setSearchValue('');
+        }
+    }, [submenuIsOpen]);
     React.useEffect(function () {
         var submenuElement = submenuRef.current;
         var observer = new ResizeObserver(function (entries) {
@@ -763,6 +769,14 @@ var Option = function (_a) {
         }
         return { maxHeight: "".concat(maxHeight, "px"), overflowY: 'auto' };
     }, [maxHeight]);
+    var handleKeyDown = React.useCallback(function (e) {
+        if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
+            if (filteredList.length) {
+                onSelect(filteredList[0]);
+                setSearchValue('');
+            }
+        }
+    }, [filteredList, onSelect]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
@@ -774,6 +788,7 @@ var Option = function (_a) {
                 renderInput({
                     value: searchValue,
                     onChange: function (e) { return _handleChange(e.currentTarget.value); },
+                    onKeyDown: handleKeyDown,
                     mounted: submenuIsOpen,
                 }),
             filteredList.map(function (item, index) { return (React.createElement(Option, { key: index, option: item, onSelect: onSelect, renderOption: renderOption })); }))),
