@@ -259,6 +259,18 @@ const Option = <TValue,>({
     return { maxHeight: `${maxHeight}px`, overflowY: 'auto'} as any;
   }, [maxHeight]);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
+        if (filteredList.length) {
+          onSelect(filteredList[0]);
+          setSearchValue('');
+        }
+      }
+    },
+    [filteredList, onSelect],
+  );
+
   return (
     <li
       className={clsx('rnd__option', option.className, {
@@ -280,6 +292,7 @@ const Option = <TValue,>({
             renderInput({
               value: searchValue,
               onChange: e => _handleChange(e.currentTarget.value),
+              onKeyDown: handleKeyDown,
               mounted: submenuIsOpen,
             })}
 
