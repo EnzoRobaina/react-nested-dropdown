@@ -187,7 +187,17 @@ const Option = <TValue,>({
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [filteredItems, setFilteredItems] = useState(items || []);
+  const [, setRenderTrigger] = useState(false);
+
+  const filteredList = useMemo(
+    () =>
+      (searchValue
+        ? items?.filter(item =>
+            item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase()),
+          )
+        : items) ?? [],
+    [items, searchValue],
+        )
 
   const handleClick = useCallback(
     (e: UIEvent) => {
@@ -205,7 +215,6 @@ const Option = <TValue,>({
   useEffect(() => {
     if (!submenuIsOpen && searchValue) {
       setSearchValue('');
-      setFilteredItems(items || []);
     }
   }, [submenuIsOpen]);
 
@@ -237,20 +246,12 @@ const Option = <TValue,>({
 
   const _handleChange = (value: string) => {
     setSearchValue(value);
-    debounceFilter(value);
+    debounceFilter();
   };
 
   const debounceFilter = useMemo(
-    () =>
-      _debounce((value: string) => {
-        if (items) {
-          const filtered = items.filter(item =>
-            item.label.trim().toLowerCase().includes(value.trim().toLowerCase()),
-          );
-          setFilteredItems(filtered);
-        }
-      }, debounce),
-    [debounce, items],
+    () => _debounce(() => setRenderTrigger(prev => !prev), debounce),
+    [debounce],
   );
 
   const maxHeightStyle = useMemo(() => {
@@ -273,13 +274,13 @@ const Option = <TValue,>({
       }
 
       if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
-        if (filteredItems.length) {
-          onSelect(filteredItems[0]);
+        if (filteredList.length) {
+          onSelect(filteredList[0]);
           setSearchValue('');
         }
       }
     },
-    [filteredItems, onSelect],
+    [filteredList, onSelect],
   );
 
   return (
@@ -307,7 +308,7 @@ const Option = <TValue,>({
               mounted: submenuIsOpen,
             })}
 
-          {filteredItems.map((item, index) => (
+          {filteredList.map((item, index) => (
             <Option
               key={`${item.label}_${index}`}
               option={item}

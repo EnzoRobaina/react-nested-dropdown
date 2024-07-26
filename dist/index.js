@@ -709,7 +709,15 @@ var Option = function (_a) {
     var _e = React.useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
     var _f = React.useState(false), submenuIsOpen = _f[0], setSubmenuOpen = _f[1];
     var _g = React.useState(''), searchValue = _g[0], setSearchValue = _g[1];
-    var _h = React.useState(items || []), filteredItems = _h[0], setFilteredItems = _h[1];
+    var _h = React.useState(false), setRenderTrigger = _h[1];
+    var filteredList = React.useMemo(function () {
+        var _a;
+        return (_a = (searchValue
+            ? items === null || items === void 0 ? void 0 : items.filter(function (item) {
+                return item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase());
+            })
+            : items)) !== null && _a !== void 0 ? _a : [];
+    }, [items, searchValue]);
     var handleClick = React.useCallback(function (e) {
         if (hasSubmenu)
             return;
@@ -721,7 +729,6 @@ var Option = function (_a) {
     React.useEffect(function () {
         if (!submenuIsOpen && searchValue) {
             setSearchValue('');
-            setFilteredItems(items || []);
         }
     }, [submenuIsOpen]);
     React.useEffect(function () {
@@ -747,18 +754,9 @@ var Option = function (_a) {
     var iconAfter = option.iconAfter ? option.iconAfter : hasSubmenu ? chevronNode : null;
     var _handleChange = function (value) {
         setSearchValue(value);
-        debounceFilter(value);
+        debounceFilter();
     };
-    var debounceFilter = React.useMemo(function () {
-        return _debounce(function (value) {
-            if (items) {
-                var filtered = items.filter(function (item) {
-                    return item.label.trim().toLowerCase().includes(value.trim().toLowerCase());
-                });
-                setFilteredItems(filtered);
-            }
-        }, debounce);
-    }, [debounce, items]);
+    var debounceFilter = React.useMemo(function () { return _debounce(function () { return setRenderTrigger(function (prev) { return !prev; }); }, debounce); }, [debounce]);
     var maxHeightStyle = React.useMemo(function () {
         if (!maxHeight) {
             return {};
@@ -774,12 +772,12 @@ var Option = function (_a) {
             return;
         }
         if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
-            if (filteredItems.length) {
-                onSelect(filteredItems[0]);
+            if (filteredList.length) {
+                onSelect(filteredList[0]);
                 setSearchValue('');
             }
         }
-    }, [filteredItems, onSelect]);
+    }, [filteredList, onSelect]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
@@ -794,7 +792,7 @@ var Option = function (_a) {
                     onKeyDown: handleKeyDown,
                     mounted: submenuIsOpen,
                 }),
-            filteredItems.map(function (item, index) { return (React.createElement(Option, { key: "".concat(item.label, "_").concat(index), option: item, onSelect: onSelect, renderOption: renderOption, renderInput: renderInput })); }))),
+            filteredList.map(function (item, index) { return (React.createElement(Option, { key: "".concat(item.label, "_").concat(index), option: item, onSelect: onSelect, renderOption: renderOption, renderInput: renderInput })); }))),
         renderOption && renderOption(option),
         !renderOption && (React.createElement(React.Fragment, null,
             option.iconBefore && (React.createElement("div", { className: "rnd__option-icon rnd__option-icon--left" }, option.iconBefore)),
