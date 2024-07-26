@@ -28,6 +28,7 @@ export interface DropdownItem<TValue = undefined> {
   selected?: boolean;
   renderInput?: (props: InputProps) => React.ReactNode;
   debounce?: number;
+  maxHeight?: number;
 }
 
 export interface DropdownProps<TValue> {
@@ -39,6 +40,7 @@ export interface DropdownProps<TValue> {
   renderOption?: (option: DropdownItem<TValue>) => ReactNode;
   closeOnScroll?: boolean;
   closeOnSelect?: boolean;
+  maxHeight?: number;
 }
 
 export const Dropdown = <TValue,>({
@@ -50,6 +52,7 @@ export const Dropdown = <TValue,>({
   renderOption,
   closeOnScroll = true,
   closeOnSelect = true,
+  maxHeight,
 }: DropdownProps<TValue>): React.ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
@@ -123,11 +126,12 @@ export const Dropdown = <TValue,>({
       {dropdownIsOpen && (
         <ul
           className={`rnd__root-menu rnd__menu ${menuPositionClassName}`}
-          style={{ width: containerWidth }}
           ref={rootMenuRef}
+          style={{ minWidth: containerWidth }}
         >
           {items.map((item, index) => (
             <Option
+              maxHeight={maxHeight}
               {...item}
               key={index}
               option={item}
@@ -142,16 +146,6 @@ export const Dropdown = <TValue,>({
 };
 
 export const DefaultInput = ({ value, mounted, ...rest }: InputProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (mounted && inputRef.current) {
-      setTimeout(() => {
-        inputRef!.current!.focus();
-      }, 10);
-    }
-  }, [mounted]);
-
   return (
     <input
       style={{
@@ -159,7 +153,6 @@ export const DefaultInput = ({ value, mounted, ...rest }: InputProps) => {
       }}
       value={value}
       {...rest}
-      ref={inputRef}
       type="text"
       placeholder="Search..."
       className="rnd__search"
@@ -186,15 +179,15 @@ const Option = <TValue,>({
   renderOption,
   renderInput,
   debounce = 100,
-  maxHeight = 300,
+  maxHeight = undefined,
 }: OptionProps<TValue>): React.ReactElement => {
   const items = option.items;
-  const hasSubmenu = !!items;
+  const hasSubmenu = items && items.length > 0;
   const itemsContainerWidth = option.itemsContainerWidth ?? 150;
   const [menuPositionClassName, setMenuPositionClassName] = useState<string>('');
   const [submenuIsOpen, setSubmenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [, setRenderTrigger] = useState(false);
+  const [filteredItems, setFilteredItems] = useState(items || []);
 
   const handleClick = useCallback(
     (e: UIEvent) => {
@@ -212,6 +205,7 @@ const Option = <TValue,>({
   useEffect(() => {
     if (!submenuIsOpen && searchValue) {
       setSearchValue('');
+      setFilteredItems(items || []);
     }
   }, [submenuIsOpen]);
 
@@ -243,22 +237,20 @@ const Option = <TValue,>({
 
   const _handleChange = (value: string) => {
     setSearchValue(value);
-    debounceFilter();
+    debounceFilter(value);
   };
 
   const debounceFilter = useMemo(
-    () => _debounce(() => setRenderTrigger(prev => !prev), debounce),
-    [debounce],
-  );
-
-  const filteredList = useMemo(
     () =>
-      (searchValue
-        ? items?.filter(item =>
-            item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase()),
-          )
-        : items) ?? [],
-    [items, searchValue],
+      _debounce((value: string) => {
+        if (items) {
+          const filtered = items.filter(item =>
+            item.label.trim().toLowerCase().includes(value.trim().toLowerCase()),
+          );
+          setFilteredItems(filtered);
+        }
+      }, debounce),
+    [debounce, items],
   );
 
   const maxHeightStyle = useMemo(() => {
@@ -271,14 +263,23 @@ const Option = <TValue,>({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Escape') {
+        setSubmenuOpen(false);
+        setSearchValue('');
+      }
+
+      if (hasSubmenu) {
+        return;
+      }
+
       if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
-        if (filteredList.length) {
-          onSelect(filteredList[0]);
+        if (filteredItems.length) {
+          onSelect(filteredItems[0]);
           setSearchValue('');
         }
       }
     },
-    [filteredList, onSelect],
+    [filteredItems, onSelect],
   );
 
   return (
@@ -296,7 +297,7 @@ const Option = <TValue,>({
             'rnd__submenu--opened': submenuIsOpen,
           })}
           ref={submenuRef}
-          style={{ width: itemsContainerWidth, ...maxHeightStyle }}
+          style={{ ...maxHeightStyle }}
         >
           {renderInput &&
             renderInput({
@@ -306,8 +307,14 @@ const Option = <TValue,>({
               mounted: submenuIsOpen,
             })}
 
-          {filteredList.map((item, index) => (
-            <Option key={index} option={item} onSelect={onSelect} renderOption={renderOption} />
+          {filteredItems.map((item, index) => (
+            <Option
+              key={`${item.label}_${index}`}
+              option={item}
+              onSelect={onSelect}
+              renderOption={renderOption}
+              renderInput={renderInput}
+            />
           ))}
         </ul>
       )}
@@ -317,7 +324,14 @@ const Option = <TValue,>({
           {option.iconBefore && (
             <div className="rnd__option-icon rnd__option-icon--left">{option.iconBefore}</div>
           )}
-          <p className="rnd__option-label">{option.label}</p>
+          <p
+            style={{
+              width: itemsContainerWidth,
+            }}
+            className="rnd__option-label"
+          >
+            {option.label}
+          </p>
           {iconAfter && <div className="rnd__option-icon rnd__option-icon--right">{iconAfter}</div>}
         </>
       )}

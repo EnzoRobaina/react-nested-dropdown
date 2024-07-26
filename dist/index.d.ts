@@ -14,6 +14,7 @@ interface DropdownItem<TValue = undefined> {
     selected?: boolean;
     renderInput?: (props: InputProps) => React.ReactNode;
     debounce?: number;
+    maxHeight?: number;
 }
 interface DropdownProps<TValue> {
     items: DropdownItem<TValue>[];
@@ -27,8 +28,9 @@ interface DropdownProps<TValue> {
     renderOption?: (option: DropdownItem<TValue>) => ReactNode;
     closeOnScroll?: boolean;
     closeOnSelect?: boolean;
+    maxHeight?: number;
 }
-declare const Dropdown: <TValue>({ items, containerWidth, onSelect, children, className, renderOption, closeOnScroll, closeOnSelect }: DropdownProps<TValue>) => React.ReactElement;
+declare const Dropdown: <TValue>({ items, containerWidth, onSelect, children, className, renderOption, closeOnScroll, closeOnSelect, maxHeight }: DropdownProps<TValue>) => React.ReactElement;
 declare const DefaultInput: ({ value, mounted, ...rest }: InputProps) => React.JSX.Element;
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     mounted?: boolean;

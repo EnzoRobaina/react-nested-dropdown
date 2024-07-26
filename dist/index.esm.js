@@ -635,7 +635,7 @@ var debounce_1 = debounce;
 var _debounce = /*@__PURE__*/getDefaultExportFromCjs(debounce_1);
 
 var Dropdown = function (_a) {
-    var items = _a.items, _b = _a.containerWidth, containerWidth = _b === void 0 ? 300 : _b, onSelect = _a.onSelect, children = _a.children, className = _a.className, renderOption = _a.renderOption, _c = _a.closeOnScroll, closeOnScroll = _c === void 0 ? true : _c, _d = _a.closeOnSelect, closeOnSelect = _d === void 0 ? true : _d;
+    var items = _a.items, _b = _a.containerWidth, containerWidth = _b === void 0 ? 300 : _b, onSelect = _a.onSelect, children = _a.children, className = _a.className, renderOption = _a.renderOption, _c = _a.closeOnScroll, closeOnScroll = _c === void 0 ? true : _c, _d = _a.closeOnSelect, closeOnSelect = _d === void 0 ? true : _d, maxHeight = _a.maxHeight;
     var containerRef = useRef(null);
     var _e = useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
     var _f = useState(false), dropdownIsOpen = _f[0], setDropdownOpen = _f[1];
@@ -690,32 +690,24 @@ var Dropdown = function (_a) {
     }, [dropdownIsOpen]);
     return (React.createElement("div", { className: clsx('rnd', className), ref: containerRef },
         children(childrenProps),
-        dropdownIsOpen && (React.createElement("ul", { className: "rnd__root-menu rnd__menu ".concat(menuPositionClassName), style: { width: containerWidth }, ref: rootMenuRef }, items.map(function (item, index) { return (React.createElement(Option, __assign({}, item, { key: index, option: item, onSelect: handleSelect, renderOption: renderOption }))); })))));
+        dropdownIsOpen && (React.createElement("ul", { className: "rnd__root-menu rnd__menu ".concat(menuPositionClassName), ref: rootMenuRef, style: { minWidth: containerWidth } }, items.map(function (item, index) { return (React.createElement(Option, __assign({ maxHeight: maxHeight }, item, { key: index, option: item, onSelect: handleSelect, renderOption: renderOption }))); })))));
 };
 var DefaultInput = function (_a) {
-    var value = _a.value, mounted = _a.mounted, rest = __rest(_a, ["value", "mounted"]);
-    var inputRef = useRef(null);
-    useEffect(function () {
-        if (mounted && inputRef.current) {
-            setTimeout(function () {
-                inputRef.current.focus();
-            }, 10);
-        }
-    }, [mounted]);
+    var value = _a.value; _a.mounted; var rest = __rest(_a, ["value", "mounted"]);
     return (React.createElement("input", __assign({ style: {
             maxWidth: '100%',
-        }, value: value }, rest, { ref: inputRef, type: "text", placeholder: "Search...", className: "rnd__search" })));
+        }, value: value }, rest, { type: "text", placeholder: "Search...", className: "rnd__search" })));
 };
 var Option = function (_a) {
     var _b;
-    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c, _d = _a.maxHeight, maxHeight = _d === void 0 ? 300 : _d;
+    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c, _d = _a.maxHeight, maxHeight = _d === void 0 ? undefined : _d;
     var items = option.items;
-    var hasSubmenu = !!items;
+    var hasSubmenu = items && items.length > 0;
     var itemsContainerWidth = (_b = option.itemsContainerWidth) !== null && _b !== void 0 ? _b : 150;
     var _e = useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
     var _f = useState(false), submenuIsOpen = _f[0], setSubmenuOpen = _f[1];
     var _g = useState(''), searchValue = _g[0], setSearchValue = _g[1];
-    var _h = useState(false), setRenderTrigger = _h[1];
+    var _h = useState(items || []), filteredItems = _h[0], setFilteredItems = _h[1];
     var handleClick = useCallback(function (e) {
         if (hasSubmenu)
             return;
@@ -727,6 +719,7 @@ var Option = function (_a) {
     useEffect(function () {
         if (!submenuIsOpen && searchValue) {
             setSearchValue('');
+            setFilteredItems(items || []);
         }
     }, [submenuIsOpen]);
     useEffect(function () {
@@ -752,17 +745,18 @@ var Option = function (_a) {
     var iconAfter = option.iconAfter ? option.iconAfter : hasSubmenu ? chevronNode : null;
     var _handleChange = function (value) {
         setSearchValue(value);
-        debounceFilter();
+        debounceFilter(value);
     };
-    var debounceFilter = useMemo(function () { return _debounce(function () { return setRenderTrigger(function (prev) { return !prev; }); }, debounce); }, [debounce]);
-    var filteredList = useMemo(function () {
-        var _a;
-        return (_a = (searchValue
-            ? items === null || items === void 0 ? void 0 : items.filter(function (item) {
-                return item.label.trim().toLowerCase().includes(searchValue.trim().toLowerCase());
-            })
-            : items)) !== null && _a !== void 0 ? _a : [];
-    }, [items, searchValue]);
+    var debounceFilter = useMemo(function () {
+        return _debounce(function (value) {
+            if (items) {
+                var filtered = items.filter(function (item) {
+                    return item.label.trim().toLowerCase().includes(value.trim().toLowerCase());
+                });
+                setFilteredItems(filtered);
+            }
+        }, debounce);
+    }, [debounce, items]);
     var maxHeightStyle = useMemo(function () {
         if (!maxHeight) {
             return {};
@@ -770,20 +764,27 @@ var Option = function (_a) {
         return { maxHeight: "".concat(maxHeight, "px"), overflowY: 'auto' };
     }, [maxHeight]);
     var handleKeyDown = useCallback(function (e) {
+        if (e.key === 'Escape') {
+            setSubmenuOpen(false);
+            setSearchValue('');
+        }
+        if (hasSubmenu) {
+            return;
+        }
         if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.which === 13) {
-            if (filteredList.length) {
-                onSelect(filteredList[0]);
+            if (filteredItems.length) {
+                onSelect(filteredItems[0]);
                 setSearchValue('');
             }
         }
-    }, [filteredList, onSelect]);
+    }, [filteredItems, onSelect]);
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
         }), onMouseDown: handleClick, onKeyUp: handleClick },
         hasSubmenu && (React.createElement("ul", { className: clsx("rnd__menu rnd__submenu ".concat(menuPositionClassName), {
                 'rnd__submenu--opened': submenuIsOpen,
-            }), ref: submenuRef, style: __assign({ width: itemsContainerWidth }, maxHeightStyle) },
+            }), ref: submenuRef, style: __assign({}, maxHeightStyle) },
             renderInput &&
                 renderInput({
                     value: searchValue,
@@ -791,11 +792,13 @@ var Option = function (_a) {
                     onKeyDown: handleKeyDown,
                     mounted: submenuIsOpen,
                 }),
-            filteredList.map(function (item, index) { return (React.createElement(Option, { key: index, option: item, onSelect: onSelect, renderOption: renderOption })); }))),
+            filteredItems.map(function (item, index) { return (React.createElement(Option, { key: "".concat(item.label, "_").concat(index), option: item, onSelect: onSelect, renderOption: renderOption, renderInput: renderInput })); }))),
         renderOption && renderOption(option),
         !renderOption && (React.createElement(React.Fragment, null,
             option.iconBefore && (React.createElement("div", { className: "rnd__option-icon rnd__option-icon--left" }, option.iconBefore)),
-            React.createElement("p", { className: "rnd__option-label" }, option.label),
+            React.createElement("p", { style: {
+                    width: itemsContainerWidth,
+                }, className: "rnd__option-label" }, option.label),
             iconAfter && React.createElement("div", { className: "rnd__option-icon rnd__option-icon--right" }, iconAfter)))));
 };
 var chevronNode = (React.createElement("div", { style: {
