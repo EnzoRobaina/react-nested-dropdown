@@ -86,7 +86,7 @@
   align-items: center;
 }
 
-.rnd__option--with-menu:hover > .rnd__submenu {
+.rnd__option--hover > .rnd__submenu {
   display: block;
 }
 

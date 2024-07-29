@@ -171,6 +171,7 @@ interface OptionProps<TValue> {
   renderInput?: (props: InputProps) => React.ReactNode;
   debounce?: number;
   maxHeight?: number;
+  closeDebounce?: number;
 }
 
 const Option = <TValue,>({
@@ -180,6 +181,7 @@ const Option = <TValue,>({
   renderInput,
   debounce = 100,
   maxHeight = undefined,
+  closeDebounce = 1000,
 }: OptionProps<TValue>): React.ReactElement => {
   const items = option.items;
   const hasSubmenu = items && items.length > 0;
@@ -197,7 +199,7 @@ const Option = <TValue,>({
           )
         : items) ?? [],
     [items, searchValue],
-        )
+  );
 
   const handleClick = useCallback(
     (e: UIEvent) => {
@@ -249,6 +251,30 @@ const Option = <TValue,>({
     debounceFilter();
   };
 
+  const removeHoverClassTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (element: HTMLElement) => {
+    const alreadyHoveredElements = element?.parentElement?.querySelectorAll('.rnd__option--hover') ?? [];
+
+    alreadyHoveredElements.forEach(el => {
+      if (el !== element) {
+        el.classList.remove('rnd__option--hover');
+      }
+    });
+
+    if (removeHoverClassTimeoutRef.current) {
+      clearTimeout(removeHoverClassTimeoutRef.current);
+      removeHoverClassTimeoutRef.current = null;
+    }
+    element.classList.add('rnd__option--hover');
+  };
+
+  const handleMouseLeave = (element: HTMLElement) => {
+    removeHoverClassTimeoutRef.current = setTimeout(() => {
+      element.classList.remove('rnd__option--hover');
+    }, closeDebounce);
+  };
+
   const debounceFilter = useMemo(
     () => _debounce(() => setRenderTrigger(prev => !prev), debounce),
     [debounce],
@@ -289,6 +315,12 @@ const Option = <TValue,>({
         'rnd__option--disabled': option.disabled,
         'rnd__option--with-menu': hasSubmenu,
       })}
+      onMouseEnter={e => {
+        handleMouseEnter(e.currentTarget);
+      }}
+      onMouseLeave={e => {
+        handleMouseLeave(e.currentTarget);
+      }}
       onMouseDown={handleClick}
       onKeyUp={handleClick}
     >
