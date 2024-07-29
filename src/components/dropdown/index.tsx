@@ -156,6 +156,7 @@ export const DefaultInput = ({ value, mounted, ...rest }: InputProps) => {
       type="text"
       placeholder="Search..."
       className="rnd__search"
+      autoFocus
     />
   );
 };
@@ -254,7 +255,18 @@ const Option = <TValue,>({
   const removeHoverClassTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = (element: HTMLElement) => {
-    const alreadyHoveredElements = element?.parentElement?.querySelectorAll('.rnd__option--hover') ?? [];
+    const alreadyHoveredElements =
+      element?.parentElement?.querySelectorAll('.rnd__option--hover') ?? [];
+
+    const input = element.querySelector('.rnd__search') as HTMLInputElement | null;
+
+    if (input) {
+      setTimeout(() => {
+        try {
+          input.focus();
+        } catch {}
+      }, 25);
+    }
 
     alreadyHoveredElements.forEach(el => {
       if (el !== element) {
