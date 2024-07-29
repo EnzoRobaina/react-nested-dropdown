@@ -698,18 +698,18 @@ var DefaultInput = function (_a) {
     var value = _a.value; _a.mounted; var rest = __rest(_a, ["value", "mounted"]);
     return (React.createElement("input", __assign({ style: {
             maxWidth: '100%',
-        }, value: value }, rest, { type: "text", placeholder: "Search...", className: "rnd__search" })));
+        }, value: value }, rest, { type: "text", placeholder: "Search...", className: "rnd__search", autoFocus: true })));
 };
 var Option = function (_a) {
     var _b;
-    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c, _d = _a.maxHeight, maxHeight = _d === void 0 ? undefined : _d;
+    var option = _a.option, onSelect = _a.onSelect, renderOption = _a.renderOption, renderInput = _a.renderInput, _c = _a.debounce, debounce = _c === void 0 ? 100 : _c, _d = _a.maxHeight, maxHeight = _d === void 0 ? undefined : _d, _e = _a.closeDebounce, closeDebounce = _e === void 0 ? 1000 : _e;
     var items = option.items;
     var hasSubmenu = items && items.length > 0;
     var itemsContainerWidth = (_b = option.itemsContainerWidth) !== null && _b !== void 0 ? _b : 150;
-    var _e = React.useState(''), menuPositionClassName = _e[0], setMenuPositionClassName = _e[1];
-    var _f = React.useState(false), submenuIsOpen = _f[0], setSubmenuOpen = _f[1];
-    var _g = React.useState(''), searchValue = _g[0], setSearchValue = _g[1];
-    var _h = React.useState(false), setRenderTrigger = _h[1];
+    var _f = React.useState(''), menuPositionClassName = _f[0], setMenuPositionClassName = _f[1];
+    var _g = React.useState(false), submenuIsOpen = _g[0], setSubmenuOpen = _g[1];
+    var _h = React.useState(''), searchValue = _h[0], setSearchValue = _h[1];
+    var _j = React.useState(false), setRenderTrigger = _j[1];
     var filteredList = React.useMemo(function () {
         var _a;
         return (_a = (searchValue
@@ -756,6 +756,35 @@ var Option = function (_a) {
         setSearchValue(value);
         debounceFilter();
     };
+    var removeHoverClassTimeoutRef = React.useRef(null);
+    var handleMouseEnter = function (element) {
+        var _a, _b;
+        var alreadyHoveredElements = (_b = (_a = element === null || element === void 0 ? void 0 : element.parentElement) === null || _a === void 0 ? void 0 : _a.querySelectorAll('.rnd__option--hover')) !== null && _b !== void 0 ? _b : [];
+        var input = element.querySelector('.rnd__search');
+        if (input) {
+            setTimeout(function () {
+                try {
+                    input.focus();
+                }
+                catch (_a) { }
+            }, 25);
+        }
+        alreadyHoveredElements.forEach(function (el) {
+            if (el !== element) {
+                el.classList.remove('rnd__option--hover');
+            }
+        });
+        if (removeHoverClassTimeoutRef.current) {
+            clearTimeout(removeHoverClassTimeoutRef.current);
+            removeHoverClassTimeoutRef.current = null;
+        }
+        element.classList.add('rnd__option--hover');
+    };
+    var handleMouseLeave = function (element) {
+        removeHoverClassTimeoutRef.current = setTimeout(function () {
+            element.classList.remove('rnd__option--hover');
+        }, closeDebounce);
+    };
     var debounceFilter = React.useMemo(function () { return _debounce(function () { return setRenderTrigger(function (prev) { return !prev; }); }, debounce); }, [debounce]);
     var maxHeightStyle = React.useMemo(function () {
         if (!maxHeight) {
@@ -781,7 +810,11 @@ var Option = function (_a) {
     return (React.createElement("li", { className: clsx('rnd__option', option.className, {
             'rnd__option--disabled': option.disabled,
             'rnd__option--with-menu': hasSubmenu,
-        }), onMouseDown: handleClick, onKeyUp: handleClick },
+        }), onMouseEnter: function (e) {
+            handleMouseEnter(e.currentTarget);
+        }, onMouseLeave: function (e) {
+            handleMouseLeave(e.currentTarget);
+        }, onMouseDown: handleClick, onKeyUp: handleClick },
         hasSubmenu && (React.createElement("ul", { className: clsx("rnd__menu rnd__submenu ".concat(menuPositionClassName), {
                 'rnd__submenu--opened': submenuIsOpen,
             }), ref: submenuRef, style: __assign({}, maxHeightStyle) },
